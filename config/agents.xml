@@ -5,7 +5,7 @@
 	
 	<!-- #### AUCTION AGENTS ### -->
 	<agent name="auction-random">
-		<set class-path="bin/"/>
+		<set class-path="out/production/Decentralized_Coordination_Skeleton"/>
 		<set class-name="template.AuctionTemplate"/>
 	</agent>
 	

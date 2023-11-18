@@ -1,9 +1,7 @@
 package template;
 
 //the list of imports
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 import logist.Measures;
 import logist.behavior.AuctionBehavior;
@@ -15,6 +13,8 @@ import logist.task.TaskDistribution;
 import logist.task.TaskSet;
 import logist.topology.Topology;
 import logist.topology.Topology.City;
+
+import static algorithms.AStar.aStarPlan;
 
 /**
  * A very simple auction agent that assigns all tasks to its first vehicle and
@@ -30,6 +30,7 @@ public class AuctionTemplate implements AuctionBehavior {
 	private Random random;
 	private Vehicle vehicle;
 	private City currentCity;
+	private Control control;
 
 	@Override
 	public void setup(Topology topology, TaskDistribution distribution,
@@ -40,6 +41,7 @@ public class AuctionTemplate implements AuctionBehavior {
 		this.agent = agent;
 		this.vehicle = agent.vehicles().get(0);
 		this.currentCity = vehicle.homeCity();
+		this.control = new Control(agent);
 
 		long seed = -9019554669489983951L * currentCity.hashCode() * agent.id();
 		this.random = new Random(seed);
@@ -48,24 +50,14 @@ public class AuctionTemplate implements AuctionBehavior {
 	@Override
 	public void auctionResult(Task previous, int winner, Long[] bids) {
 		if (winner == agent.id()) {
-			currentCity = previous.deliveryCity;
+			control.updateControlVariablesIfTaskWon(previous);
 		}
 	}
 	
 	@Override
 	public Long askPrice(Task task) {
-
-		if (vehicle.capacity() < task.weight)
-			return null;
-
-		long distanceTask = task.pickupCity.distanceUnitsTo(task.deliveryCity);
-		long distanceSum = distanceTask
-				+ currentCity.distanceUnitsTo(task.pickupCity);
-		double marginalCost = Measures.unitsToKM(distanceSum
-				* vehicle.costPerKm());
-
 		double ratio = 1.0 + (random.nextDouble() * 0.05 * task.id);
-		double bid = ratio * marginalCost;
+		double bid = ratio * control.getLowestMarginalCost(task);
 
 		return (long) Math.round(bid);
 	}
