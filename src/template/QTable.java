@@ -47,10 +47,7 @@ public class QTable {
 //      - Vehicle id
 
     // Defining global variables
-    private final ArrayList<City> state_space;
-    private final int nr_actions;
-    private final int nr_states;
-    private final double[][] Q;
+    private final double avg_badness;
     private final double[] V;
 
     //////////////////////////////////////////////////////////
@@ -60,11 +57,11 @@ public class QTable {
         /////////////////////// Create State Space ///////////////
 
         // Size of states and cities is 1 to 1
-        nr_states = topology1.size();
+        int nr_states = topology1.size();
 
         // Extract the list of cities in this Topology
             // Since a state only corresponds to 1 city we can say the list of cities is the same as the state_space
-        state_space = new ArrayList<>(topology1.cities());
+        ArrayList<City> state_space = new ArrayList<>(topology1.cities());
 
         // Verify that the cities in states space are order from 0 to nr_cities
         for(int i=0; i<nr_states; i++){
@@ -78,7 +75,7 @@ public class QTable {
         // Explanation: So Cities have id #, the action # represents the action of moving to that city.id #,
 
         // Get the # of actions
-        nr_actions = topology1.size();
+        int nr_actions = topology1.size();
 
         ////////////////////// Create Action Space ///////////////
         //////////////////////////////////////////////////////////
@@ -91,7 +88,7 @@ public class QTable {
 
 
         // Initialize Q array
-        Q = new double[nr_states][nr_actions];
+        double[][] Q = new double[nr_states][nr_actions];
 
         // While loop until the condition is satisfied
         int MaxIter = 20000;
@@ -164,10 +161,12 @@ public class QTable {
                 break;
         }
 
+        avg_badness = avgBadness(Q, nr_states, nr_actions, state_space);
+
     }
 
     //////////////// Helpful functions for afterwards ////////////////
-    public double avgBadness(){
+    private double avgBadness(double[][] Q, int nr_states, int nr_actions, ArrayList<City> state_space){
         // Initialize the average badness from the Q-table
         double total_badness = 0;
 
@@ -206,12 +205,11 @@ public class QTable {
     }
 
     //////////////// GET functions ////////////////
-    public double[][] getQ() {
-        return Q;
-    }
-
     public double[] getV() {
         return V;
     }
 
+    public double getAvg_badness() {
+        return avg_badness;
+    }
 }
