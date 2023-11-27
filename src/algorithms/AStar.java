@@ -4,6 +4,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.PriorityQueue;
+
+import centralized.PD_Action;
 import logist.plan.Plan;
 import logist.simulation.Vehicle;
 import logist.task.Task;
@@ -18,7 +20,7 @@ public class AStar {
         }
     }
 
-    public static Plan aStarPlan(Vehicle vehicle, List<Task> available, State initialState) {
+    public static List<PD_Action> aStarPlan(Vehicle vehicle, List<Task> available, State initialState) {
         PriorityQueue<State> Q = new PriorityQueue<State>(new StateComparator()); // Efficient data-structure to get cities that have the lowest score
         HashMap<State, Double> history = new HashMap<State, Double>(); // To store the cost for each node. If we come back to the same node, we will check this to see if we found a better path.
 
@@ -29,7 +31,7 @@ public class AStar {
 
             // Check whether the state is a final one. In that case we return the plan
             if (node.isFinal()) {
-                return new Plan(vehicle.getCurrentCity(), node.getActionsToReach());
+                return node.getPDPlan();
             }
 
             // We add the note and its children if 1) this is the first time it is visited or 2) the cost has decreased

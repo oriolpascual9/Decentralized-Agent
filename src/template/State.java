@@ -1,5 +1,6 @@
 package template;
 
+import centralized.PD_Action;
 import logist.simulation.Vehicle;
 import logist.task.Task;
 import logist.topology.Topology.City;
@@ -14,6 +15,7 @@ public class State implements Comparable<State>{
 	private final List<Task> carriedTasks;
 	private final List<Task> availableTasks;
 	private LinkedList<Action> actionsToReach;
+	private List<PD_Action> PDPlan;
 	private double costToReach;
 	private int currentVehicleCapacity;
 
@@ -23,6 +25,7 @@ public class State implements Comparable<State>{
 		this.availableTasks = availableTasks;
 		this.currentVehicleCapacity = currentVehicleCapacity;
 		this.actionsToReach = new LinkedList<Action>();
+		this.PDPlan = new ArrayList<>();
 		this.costToReach = 0;
 	}
 	
@@ -69,7 +72,11 @@ public class State implements Comparable<State>{
 			// And finally, the delivery action
 			branchActions.add(new Action.Delivery(task));
 			child.setActionsToReach(branchActions);
-			
+
+			List<PD_Action> branchPDActions = new ArrayList<>(this.getPDPlan());
+			branchPDActions.add(new PD_Action(false,task));
+			child.setPDPlan(branchPDActions);
+
 			// Compute the distance
 			double branchCost = currentCity.distanceTo(task.deliveryCity);
 			child.setCostToReach(this.getCostToReach()+branchCost);
@@ -103,6 +110,10 @@ public class State implements Comparable<State>{
 				}
 				branchActions.add(new Action.Pickup(task));
 				child.setActionsToReach(branchActions);
+
+				List<PD_Action> branchPDActions = new ArrayList<>(this.getPDPlan());
+				branchPDActions.add(new PD_Action(true,task));
+				child.setPDPlan(branchPDActions);
 				
 				double branchCost = currentCity.distanceTo(task.pickupCity);
 				child.setCostToReach(this.getCostToReach()+branchCost);
@@ -184,11 +195,15 @@ public class State implements Comparable<State>{
 	public LinkedList<Action> getActionsToReach() {
 		return this.actionsToReach;
 	}
-	
+
+	public List<PD_Action> getPDPlan() { return PDPlan;}
+
 	public void setActionsToReach(LinkedList<Action> actionsToReach) {
 		this.actionsToReach = actionsToReach;
 	}
-	
+
+	public void setPDPlan(List<PD_Action> PDPlan) { this.PDPlan = PDPlan;}
+
 	public double getCostToReach() {
 		return this.costToReach;
 	}
