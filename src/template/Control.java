@@ -91,7 +91,7 @@ public class Control {
         Plan newPlan;
         List<PD_Action> newPDPlan;
         // when having less than 6 tasks ASTAR works well
-        if (tmpAssignedTasks.size() < 6) {
+        if (tmpAssignedTasks.size() < 7) {
             State initialState = new State(vehicle, tmpAssignedTasks);
             newPDPlan = aStarPlan(vehicle, tmpAssignedTasks, initialState);
         }
@@ -115,8 +115,9 @@ public class Control {
             CentralizedTemplate centralizedTemplate = new CentralizedTemplate();
             newPDPlan = centralizedTemplate.SLS(justOneVehicle,tmpAssignedTasks, candidate).get(0);
         }
+
         // compute marginal cost to deliver the new task compared to the already assigned plan
-        double marginalCost = (ComputeCost(vehicle, newPDPlan) - ComputeCost(vehicle, plans.get(vehicle))) * vehicle.costPerKm();
+        double marginalCost = (ComputeCost(vehicle, newPDPlan) - ComputeCost(vehicle, plans.get(vehicle)));
         return new Pair(marginalCost, newPDPlan);
     }
 }

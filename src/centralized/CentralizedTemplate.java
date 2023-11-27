@@ -35,7 +35,8 @@ public class CentralizedTemplate {
         this.p = 0.2; // set p
 
         // 30 s = 30.000 millseconds
-        timeout_plan = 10000;	// We add a little safety margin
+        // computing time plan
+        timeout_plan = 12000;
     }
 
     // Solve the optimization problem with the SLS algorithm

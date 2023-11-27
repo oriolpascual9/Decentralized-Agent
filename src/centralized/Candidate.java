@@ -24,12 +24,7 @@ public class Candidate {
         this.cost = cost;
     }
 
-
-
-
-
-
-// MAIN OPERATIONS: Choose neighbours, select initial solution
+    // MAIN OPERATIONS: Choose neighbours, select initial solution
 
     // Function that generates neighbours
     public List<Candidate> ChooseNeighbours(Random random) {
@@ -101,18 +96,19 @@ public class Candidate {
 
 
             // Get a task from the vehicle randomly
-            int task_id = random.nextInt(vehicle_tasks.size());
+            //int task_id = random.nextInt(vehicle_tasks.size());
 
+            // last task will be the inserted one
+            int task_id = vehicle_tasks.size() - 1;
 
             // Change the position of pickup and delivery actions of the task and add to neighbours
             neighs.add(ChangingTaskOrder(random, task_id, vid_i));
-
+            neighs.add(ChangingTaskOrder(random, task_id, vid_i));
+            neighs.add(ChangingTaskOrder(random, task_id, vid_i));
 
             // A potential improvement would be to make this change for each task of the vehicle, not only a random
             // one (i.e. loop over all task indices instead of taking a random task) and also to generate each potential
             // combination.
-
-
         }
 
 
@@ -394,7 +390,7 @@ public class Candidate {
             }
         }
 
-// insert the pickup action to a suitable place
+        // insert the pickup action to a suitable place
         int vehicle_capacity = v_i.capacity();
         int pickup_location = 0;
         List<PD_Action> candidate_plan_pickup = new ArrayList<>(i_plan_new);
@@ -435,10 +431,8 @@ public class Candidate {
             }
         }
 
-
         // Set the new plan to the plan after including the delivery action
         i_plan_new = new ArrayList<>(candidate_plan_delivery);
-
 
         // update plans lists
         List<List<PD_Action>> updated_plans = new ArrayList<>(plans);
