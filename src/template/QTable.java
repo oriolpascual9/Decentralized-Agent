@@ -183,10 +183,10 @@ public class QTable {
             // Iterate over all the actions
             for(int a=0; a<nr_actions; a++){
                 if(state_space.get(s).id != a){
-                    System.out.print("Q Value is: ");
-                    System.out.println(Q[s][a]);
-                    System.out.println("------");
-                    System.out.println("------");
+//                    System.out.print("Q Value is: ");
+//                    System.out.println(Q[s][a]);
+//                    System.out.println("------");
+//                    System.out.println("------");
                     total_badness += Q[s][a];
                     count       += 1;
                 }
