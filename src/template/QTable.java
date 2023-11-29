@@ -52,7 +52,7 @@ public class QTable {
 
     //////////////////////////////////////////////////////////
     //////////////////// Initialize Q table //////////////////
-    QTable(Topology topology1, TaskDistribution td1, Agent agent1, Double discount, Integer veh_id){
+    QTable(Topology topology1, TaskDistribution td1, Double discount){
         //////////////////////////////////////////////////////////
         /////////////////////// Create State Space ///////////////
 
@@ -112,7 +112,7 @@ public class QTable {
 
                         // Calculate the immediate "badness" level of the city
                         double immediate_badness = -( td1.probability(state_space.get(s), null) ) *
-                                state_space.get(s).distanceTo(state_space.get(a)) * agent1.vehicles().get(veh_id).costPerKm();
+                                state_space.get(s).distanceTo(state_space.get(a));
 
                             /// Add one where it's the probability of NO package*distance to action city
                         // Calculate the Q value
@@ -189,7 +189,7 @@ public class QTable {
         return total_badness/count;
     }
 
-    public double bestCityBadness(ArrayList<City> visited_cities){
+    public double bestCityBadness(List<City> visited_cities){
 //        For a list of cities that will get visited (visited_cities), the "best badness" refers to the city with
 //        the lowest Q-value (so Q-value closest to 0 / the least negative)
 

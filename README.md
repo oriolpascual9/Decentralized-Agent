@@ -9,3 +9,11 @@
 ### plan
 - Recompute plans with all vehicles and all tasks to see if there is any improvement
 - Use SLS teachers code?
+
+### To-Do
+- Fix Q-table
+- Implement centralized
+- Modify bidding rounds to use A* only till car has <= 5. Then use Centralized code
+- Avg minimum for base bid
+- Modify A* to output the intermediate plan representation (If Time)
+
