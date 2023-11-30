@@ -1,11 +1,15 @@
 package template;
 
 //the list of imports
+import java.io.File;
 import java.util.*;
 
+import logist.LogistPlatform;
+import logist.LogistSettings;
 import logist.Measures;
 import logist.behavior.AuctionBehavior;
 import logist.agent.Agent;
+import logist.config.Parsers;
 import logist.simulation.Vehicle;
 import logist.plan.Plan;
 import logist.task.Task;
@@ -36,6 +40,10 @@ public class AuctionTemplate implements AuctionBehavior {
 	private double avg_min;
 
 
+	private long timeout_setup;
+	private long timeout_bid;
+	private long timeout_plan;
+
 	@Override
 	public void setup(Topology topology, TaskDistribution distribution,
 			Agent agent) {
@@ -54,6 +62,24 @@ public class AuctionTemplate implements AuctionBehavior {
 
 		long seed = -9019554669489983951L * currentCity.hashCode() * agent.id();
 		this.random = new Random(seed);
+
+		// this code is used to get the timeouts
+		LogistSettings ls = null;
+		try {
+			ls = Parsers.parseSettings("config" + File.separator + "settings_auction.xml");
+		} catch (Exception exc) {
+			System.out.println("There was a problem loading the configuration file.");
+		}
+
+		long timeout_margin = 200;
+
+		// the setup method cannot last more than timeout_setup milliseconds
+		timeout_setup = LogistPlatform.getSettings().get(LogistSettings.TimeoutKey.SETUP) - timeout_margin;
+		// the bid method cannot last more than timeout_bid milliseconds
+		timeout_bid = LogistPlatform.getSettings().get(LogistSettings.TimeoutKey.BID) - timeout_margin;
+		// the plan method cannot last more than timeout_plan milliseconds
+		timeout_plan = LogistPlatform.getSettings().get(LogistSettings.TimeoutKey.PLAN) - timeout_margin;
+		System.out.println("Agent " + agent.id() + ": timeout_setup: " + timeout_setup + ", timeout_bid: " + timeout_bid + ", timeout_plan: " + timeout_plan);
 
 		System.out.println("The average is: " + this.level_badness.getAvg_badness() );
 	}
@@ -92,17 +118,8 @@ public class AuctionTemplate implements AuctionBehavior {
 
 	@Override
 	public List<Plan> plan(List<Vehicle> vehicles, TaskSet tasks) {
-		
-//		System.out.println("Agent " + agent.id() + " has tasks " + tasks);
-
-		Plan planVehicle1 = naivePlan(vehicle, tasks);
-
-		List<Plan> plans = new ArrayList<Plan>();
-		plans.add(planVehicle1);
-		while (plans.size() < vehicles.size())
-			plans.add(Plan.EMPTY);
-
-		return plans;
+		ArrayList<Task> taskArrayList = new ArrayList<>(tasks);
+		return Control.definitivePlans(vehicles, taskArrayList, timeout_plan);
 	}
 
 	private Plan naivePlan(Vehicle vehicle, TaskSet tasks) {
