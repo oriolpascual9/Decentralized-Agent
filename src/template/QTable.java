@@ -180,6 +180,8 @@ public class QTable {
         // Iterate over all the states
         for(int s=0; s<nr_states; s++){
 
+            // Maybe have a vector C that only saves the values of Q where a package is to be delivered
+                // So remove the values in V where we have no package to deliver
             // Iterate over all the actions
             for(int a=0; a<nr_actions; a++){
                 if(state_space.get(s).id != a){

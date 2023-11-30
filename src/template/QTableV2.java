@@ -11,7 +11,7 @@ import java.util.List;
 
 public class QTableV2 {
     private final double avg_badness;
-    private final double[] V;
+    private final double[] badness;
 
     QTableV2(Topology topology1, TaskDistribution td1, Double discount){
         //////////////////////////////////////////////////////////
@@ -44,6 +44,8 @@ public class QTableV2 {
                     k++;
                 }
             }
+
+            // Create a state where there is no package to be delivered
             state_space[k] = new StateQV2(current_city, null);
             k++;
         }
@@ -61,7 +63,7 @@ public class QTableV2 {
         //////////////////////////////////////////////////////////
         //////////////////// Initialize V vector /////////////////
 
-        V = new double[nr_states];
+        double[] V = new double[nr_states];
         Arrays.fill(V, 0);
 
         //////////////////// Initialize V vector /////////////////
@@ -126,7 +128,7 @@ public class QTableV2 {
                             double net_reward = -distance;
 
                             // Calculate sum{ T(s,a,s_prime) * V(s_prime) }
-                            double future_reward = FutureRewards(state_space, s, a, td1, topology1, nr_actions);
+                            double future_reward = FutureRewards(state_space, s, a, td1, topology1, nr_actions, V);
 
                             // Calculate Q(s,a)
                             Q[s][a] = net_reward + discount*future_reward;
@@ -149,7 +151,7 @@ public class QTableV2 {
                             double net_reward = -distance * (1 - td1.probability(current_city, package_city));
 
                             // Calculate sum{ T(s,a,s_prim) * V(s_prime) }
-                            double future_reward = FutureRewards(state_space, s, a, td1, topology1, nr_actions);
+                            double future_reward = FutureRewards(state_space, s, a, td1, topology1, nr_actions, V);
 
                             // Calculate Q(s,a)
                             Q[s][a] = net_reward + discount*future_reward;
@@ -196,13 +198,30 @@ public class QTableV2 {
                 break;
         }
 
-        avg_badness = avgBadness(Q, nr_states, nr_actions, state_space);
+        badness = generateBadness(V, topology1.size(), nr_states);
+        avg_badness = avgBadness(badness, nr_states- topology1.size());
 
 
     }
 
-    // Find the Acg badness
-    private double avgBadness(double[][] Q, int nr_states, int nr_actions, ArrayList<City> state_space){
+    // Calculate the badness level
+    private double[] generateBadness(double[] V, int nr_cities, int nr_states){
+        // Initialize the badness vector
+        double[] C = new double[nr_states - nr_cities];
+        Arrays.fill(C, 0);
+
+        // Iterate over all the sates and collect the V value only for states where a package needs to be delivered
+        for(int sp = 0; sp < nr_states; sp++){
+            if(((sp % nr_cities) != 0) || (sp ==0))
+                C[sp] = V[sp];
+
+        }
+
+        return C;
+    }
+
+    // Find the Avg badness
+    private double avgBadness(double[] C, int nr_states){
         // Initialize the average badness from the Q-table
         double total_badness = 0;
 
@@ -212,17 +231,9 @@ public class QTableV2 {
         // Iterate over all the states
         for(int s=0; s<nr_states; s++){
 
-            // Iterate over all the actions
-            for(int a=0; a<nr_actions; a++){
-                if(state_space.get(s).id != a){
-//                    System.out.print("Q Value is: ");
-//                    System.out.println(Q[s][a]);
-//                    System.out.println("------");
-//                    System.out.println("------");
-                    total_badness += Q[s][a];
-                    count       += 1;
-                }
-            }
+            total_badness += C[s];
+            count         += 1;
+
         }
 
         // Return the average
@@ -268,7 +279,7 @@ public class QTableV2 {
 
     // Function below is used to calculate  sum{ T(s,a,s_prime) * V(s_prime) }
     private double FutureRewards(StateQV2[] state_array, int curr_s, int curr_a, TaskDistribution td2,
-                                 Topology topology2, int nr_actions){
+                                 Topology topology2, int nr_actions, double[] V){
         ////////////////////////////////////////////////////
         ///////// Find Next city | Given action a //////////
 
@@ -369,4 +380,19 @@ public class QTableV2 {
 
     }
 
+    ////////////////////////////
+
+    public double getAvg_badness() {
+        return avg_badness;
+    }
+    public double getCurr_badness(Task task, Topology topology0){
+        // Get pick-up and destination city
+        City pickup_city = task.pickupCity;
+        City deliver_city = task.deliveryCity;
+
+        // Find the state # for the current badness
+        int state_nr = (pickup_city.id)*(topology0.size() - 1) + (deliver_city.id - 1);
+
+        return this.badness[state_nr];
+    }
 }
