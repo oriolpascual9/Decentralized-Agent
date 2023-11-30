@@ -113,6 +113,8 @@ public class AuctionTemplate implements AuctionBehavior {
 		else // lowest we bid is marg_cost
 			bid = Math.max(R*this.avg_min, marg_cost);
 
+		System.out.println("The Bid is: " + bid);
+
 		return (long) Math.round(bid);
 	}
 
