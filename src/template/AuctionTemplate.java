@@ -31,7 +31,10 @@ public class AuctionTemplate implements AuctionBehavior {
 	private Vehicle vehicle;
 	private City currentCity;
 	private Control control;
-	private QTable badness;
+	private QTableV2 level_badness;
+	private Integer nr_bids;
+	private double avg_min;
+
 
 	@Override
 	public void setup(Topology topology, TaskDistribution distribution,
@@ -43,12 +46,16 @@ public class AuctionTemplate implements AuctionBehavior {
 		this.vehicle = agent.vehicles().get(0);
 		this.currentCity = vehicle.homeCity();
 		this.control = new Control(agent);
-		this.badness = new QTable(topology, distribution, 0.85 );
+
+		this.level_badness = new QTableV2(topology, distribution, 0.85 );
+		this.nr_bids = 0;
+		this.avg_min = 0;
+
 
 		long seed = -9019554669489983951L * currentCity.hashCode() * agent.id();
 		this.random = new Random(seed);
 
-		System.out.println("The average is: " + this.badness.getAvg_badness() );
+		System.out.println("The average is: " + this.level_badness.getAvg_badness() );
 	}
 
 	@Override
@@ -56,24 +63,29 @@ public class AuctionTemplate implements AuctionBehavior {
 		if (winner == agent.id()) {
 			control.updateControlVariablesIfTaskWon(previous);
 		}
+
+		double smallest_bid = Double.POSITIVE_INFINITY;
+        for (Long bid : bids)
+            smallest_bid = Math.min(smallest_bid, bid);
+
+		this.nr_bids += 1;
+		this.avg_min = ((this.nr_bids-1)*this.avg_min +  smallest_bid)/this.nr_bids;
 	}
 	
 	@Override
 	public Long askPrice(Task task) {
+		double r = 0;
 
-		double r;
+		double R = this.level_badness.getCurr_badness(task) / this.level_badness.getAvg_badness();
+		System.out.println("The Ratio is: " + R);
 
-		City pickup = task.pickupCity;
-		City deliver = task.deliveryCity;
-		List<City> path = pickup.pathTo(deliver);
-		System.out.println(pickup.id == path.get(0).id);
+		double marg_cost = control.getLowestMarginalCost(task);
 
-		 r = this.badness.bestCityBadness(path) / this.badness.getAvg_badness() ;
-
-		System.out.println("The Ratio is: " + r);
-
-		double ratio = r;
-		double bid = ratio * control.getLowestMarginalCost(task);
+		double bid;
+		if(this.avg_min < marg_cost) // lowest we bid is avg_min
+			bid = Math.max(this.avg_min, R*marg_cost);
+		else // lowest we bid is marg_cost
+			bid = Math.max(R*this.avg_min, marg_cost);
 
 		return (long) Math.round(bid);
 	}

@@ -12,6 +12,7 @@ import java.util.List;
 public class QTableV2 {
     private final double avg_badness;
     private final double[] badness;
+    private final int nr_cities;
 
     QTableV2(Topology topology1, TaskDistribution td1, Double discount){
         //////////////////////////////////////////////////////////
@@ -24,6 +25,7 @@ public class QTableV2 {
 
         // Extract the list of cities
         List<City> city_list = topology1.cities();
+        nr_cities = topology1.size();
 
         // Create States Space
         int k = 0; // State Space index
@@ -198,26 +200,36 @@ public class QTableV2 {
                 break;
         }
 
-        badness = generateBadness(V, topology1.size(), nr_states);
+        badness = generateBadness(V, nr_states);
         avg_badness = avgBadness(badness, nr_states- topology1.size());
 
 
     }
 
     // Calculate the badness level
-    private double[] generateBadness(double[] V, int nr_cities, int nr_states){
-        // Initialize the badness vector
-        double[] C = new double[nr_states - nr_cities];
-        Arrays.fill(C, 0);
+    private double[] generateBadness(double[] V, int nr_states){
+        // Should I include the no package state
+        boolean remove_no_package = true;
 
-        // Iterate over all the sates and collect the V value only for states where a package needs to be delivered
-        for(int sp = 0; sp < nr_states; sp++){
-            if(((sp % nr_cities) != 0) || (sp ==0))
-                C[sp] = V[sp];
+        if(remove_no_package) {
+            // Initialize the badness vector
+            double[] C = new double[nr_states - nr_cities + 1];
+            Arrays.fill(C, 0);
 
+            // Iterate over all the sates and collect the V value only for states where a package needs to be delivered
+            int sp = 0;
+            for (int s = 0; s < nr_states; s++) {
+                if (((s + 1) % nr_cities) != 0) {
+                    C[sp] = V[s];
+                    sp++;
+                }
+
+            }
+
+            return C;
         }
-
-        return C;
+        else
+            return V;
     }
 
     // Find the Avg badness
@@ -385,13 +397,13 @@ public class QTableV2 {
     public double getAvg_badness() {
         return avg_badness;
     }
-    public double getCurr_badness(Task task, Topology topology0){
+    public double getCurr_badness(Task task){
         // Get pick-up and destination city
         City pickup_city = task.pickupCity;
         City deliver_city = task.deliveryCity;
 
         // Find the state # for the current badness
-        int state_nr = (pickup_city.id)*(topology0.size() - 1) + (deliver_city.id - 1);
+        int state_nr = (pickup_city.id)*(nr_cities - 1) + (deliver_city.id - 1);
 
         return this.badness[state_nr];
     }
