@@ -96,15 +96,17 @@ public class Candidate {
 
 
             // Get a task from the vehicle randomly
-            //int task_id = random.nextInt(vehicle_tasks.size());
-
+            int task_id;
+            if (num_vehicles > 1)
+                task_id = random.nextInt(vehicle_tasks.size());
             // last task will be the inserted one
-            int task_id = vehicle_tasks.size() - 1;
+            else
+                task_id = vehicle_tasks.size() - 1;
 
             // Change the position of pickup and delivery actions of the task and add to neighbours
-            neighs.add(ChangingTaskOrder(random, task_id, vid_i));
-            neighs.add(ChangingTaskOrder(random, task_id, vid_i));
-            neighs.add(ChangingTaskOrder(random, task_id, vid_i));
+            for(int i = 0; i < 10; i++) {
+                neighs.add(ChangingTaskOrder(random, task_id, vid_i));
+            }
 
             // A potential improvement would be to make this change for each task of the vehicle, not only a random
             // one (i.e. loop over all task indices instead of taking a random task) and also to generate each potential

@@ -10,6 +10,7 @@ import logist.simulation.Vehicle;
 import logist.task.Task;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
@@ -73,6 +74,59 @@ public class Control {
             }
         }
         return lowestMarginalCost;
+    }
+
+    public static List<Plan> definitivePlans(List<Vehicle> vehicles, ArrayList<Task> tasks, long timeout_plan) {
+        // create a list of integers with the task id to be able to recover the id of the tasks
+        List<List<Integer>> tasksIDsList = new ArrayList<>();
+        for (List<Task> orginalTasks: assignedTasks.values()) {
+            List<Integer> taskIDs = new ArrayList<>();
+            for (Task task : orginalTasks) {
+                taskIDs.add(task.id);
+            }
+            tasksIDsList.add(taskIDs);
+        }
+
+        List<List<Task>> newTasks = new ArrayList<>();
+        for(List<Integer> taskIDofVeh: tasksIDsList) {
+            List<Task> listNewTasks = new ArrayList<>();
+            for (Task task : tasks) {
+                if (taskIDofVeh.contains(task.id) ){
+                    listNewTasks.add(task);
+                }
+            }
+            newTasks.add(listNewTasks);
+        }
+
+        // update PD_Action struct in plans with the renovated tasks
+        for(List<PD_Action> vehPlan : plans.values()) {
+            for (PD_Action act : vehPlan) {
+                for(Task task : tasks) {
+                    if(task.id == act.task.id) {
+                        act.task = task;
+                    }
+                }
+            }
+        }
+        // And transform the HashMap to List<List<PD_Action>>
+        List<List<PD_Action>> plansList = new ArrayList<>();
+        plansList.addAll(plans.values());
+
+        double cost = 0;
+        for (Vehicle vehicle : vehicles) {
+            cost += ComputeCost(vehicle, plans.get(vehicle));
+        }
+
+
+        Candidate candidate = new Candidate(vehicles, plansList, newTasks, cost);
+        CentralizedTemplate centralizedTemplate = new CentralizedTemplate();
+        // set new instance of centralized template with new timeout for planning
+        centralizedTemplate.setTimeout_plan(timeout_plan);
+        List<List<PD_Action>> newPDPlan = centralizedTemplate.SLS(vehicles,tasks, candidate);
+
+        Candidate definitive = new Candidate(vehicles, newPDPlan, newTasks, cost);
+
+        return centralizedTemplate.PlanFromSolution(definitive);
     }
 
     public void updateControlVariablesIfTaskWon(Task task) {

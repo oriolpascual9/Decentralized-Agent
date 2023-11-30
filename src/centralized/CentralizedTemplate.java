@@ -39,6 +39,10 @@ public class CentralizedTemplate {
         timeout_plan = 12000;
     }
 
+    public void setTimeout_plan(long timeout_plan) {
+        this.timeout_plan = timeout_plan;
+    }
+
     // Solve the optimization problem with the SLS algorithm
     public List<List<PD_Action>> SLS(List<Vehicle> vehicles, List<Task> task_list, Candidate A) {
         setClassVariables();
