@@ -35,6 +35,7 @@ public class AuctionTemplate implements AuctionBehavior {
 	private Vehicle vehicle;
 	private City currentCity;
 	private Control control;
+	private QTable badness;
 
 	private long timeout_setup;
 	private long timeout_bid;
@@ -50,6 +51,7 @@ public class AuctionTemplate implements AuctionBehavior {
 		this.vehicle = agent.vehicles().get(0);
 		this.currentCity = vehicle.homeCity();
 		this.control = new Control(agent);
+		this.badness = new QTable(topology, distribution, 0.85 );
 
 		long seed = -9019554669489983951L * currentCity.hashCode() * agent.id();
 		this.random = new Random(seed);
@@ -72,6 +74,7 @@ public class AuctionTemplate implements AuctionBehavior {
 		timeout_plan = LogistPlatform.getSettings().get(LogistSettings.TimeoutKey.PLAN) - timeout_margin;
 		System.out.println("Agent " + agent.id() + ": timeout_setup: " + timeout_setup + ", timeout_bid: " + timeout_bid + ", timeout_plan: " + timeout_plan);
 
+		System.out.println("The average is: " + this.badness.getAvg_badness() );
 	}
 
 	@Override
@@ -83,7 +86,19 @@ public class AuctionTemplate implements AuctionBehavior {
 	
 	@Override
 	public Long askPrice(Task task) {
-		double ratio = 1.0 + (random.nextDouble() * 0.05 * task.id);
+
+		double r;
+
+		City pickup = task.pickupCity;
+		City deliver = task.deliveryCity;
+		List<City> path = pickup.pathTo(deliver);
+		System.out.println(pickup.id == path.get(0).id);
+
+		 r = this.badness.bestCityBadness(path) / this.badness.getAvg_badness() ;
+
+		System.out.println("The Ratio is: " + r);
+
+		double ratio = r;
 		double bid = ratio * control.getLowestMarginalCost(task);
 
 		return (long) Math.round(bid);

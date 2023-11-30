@@ -52,7 +52,7 @@ public class QTable {
 
     //////////////////////////////////////////////////////////
     //////////////////// Initialize Q table //////////////////
-    QTable(Topology topology1, TaskDistribution td1, Agent agent1, Double discount, Integer veh_id){
+    QTable(Topology topology1, TaskDistribution td1, Double discount){
         //////////////////////////////////////////////////////////
         /////////////////////// Create State Space ///////////////
 
@@ -111,12 +111,15 @@ public class QTable {
                         /////// Calculate Q matrix for MOVE actions ////////
 
                         // Calculate the immediate "badness" level of the city
-                        double immediate_badness = -( td1.probability(state_space.get(s), null) ) *
-                                state_space.get(s).distanceTo(state_space.get(a)) * agent1.vehicles().get(veh_id).costPerKm();
-
+                            // Action says I move to city a. I am at city s
+                            // So immediate badness is the probability that, when i move from s to a, I have no package to deliver
+                            // Then we multiply this probability with the distance of traveling from s to a
+                        double immediate_badness = -(1 - td1.probability(state_space.get(s), state_space.get(a)) ) *
+                                state_space.get(s).distanceTo(state_space.get(a));
                             /// Add one where it's the probability of NO package*distance to action city
                         // Calculate the Q value
-                        Q[s][a] = immediate_badness + discount*td1.probability(state_space.get(s), null)*(V[a]);
+                        Q[s][a] = immediate_badness + discount*V[a];
+//                                td1.probability(state_space.get(s), null)*(V[a]);
 
                         /////// Calculate Q matrix for MOVE actions ////////
                         ////////////////////////////////////////////////////
@@ -165,6 +168,7 @@ public class QTable {
 
     }
 
+
     //////////////// Helpful functions for afterwards ////////////////
     private double avgBadness(double[][] Q, int nr_states, int nr_actions, ArrayList<City> state_space){
         // Initialize the average badness from the Q-table
@@ -179,6 +183,10 @@ public class QTable {
             // Iterate over all the actions
             for(int a=0; a<nr_actions; a++){
                 if(state_space.get(s).id != a){
+//                    System.out.print("Q Value is: ");
+//                    System.out.println(Q[s][a]);
+//                    System.out.println("------");
+//                    System.out.println("------");
                     total_badness += Q[s][a];
                     count       += 1;
                 }
@@ -189,7 +197,7 @@ public class QTable {
         return total_badness/count;
     }
 
-    public double bestCityBadness(ArrayList<City> visited_cities){
+    public double bestCityBadness(List<City> visited_cities){
 //        For a list of cities that will get visited (visited_cities), the "best badness" refers to the city with
 //        the lowest Q-value (so Q-value closest to 0 / the least negative)
 
