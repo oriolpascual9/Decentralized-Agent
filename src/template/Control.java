@@ -49,7 +49,7 @@ public class Control {
         }
     }
 
-    public double getLowestMarginalCost(Task task) {
+    public double getLowestMarginalCost(Task task, long timeout_bid) {
         double lowestMarginalCost = Double.MAX_VALUE;
         double vehicleMarginalCost;
         List<PD_Action> newPlan;
@@ -58,7 +58,7 @@ public class Control {
         // Compute marginal cost for all vehicles and keep the lowest
         for (Vehicle vehicle : plans.keySet()) {
             // newPlan will be updated with the new computed plan
-            vehicleResults = computeMarginalCost(vehicle, task);
+            vehicleResults = computeMarginalCost(vehicle, task, timeout_bid/plans.size());
             vehicleMarginalCost = (double)vehicleResults.t;
             newPlan = (List<PD_Action>) vehicleResults.u;
 
@@ -117,7 +117,6 @@ public class Control {
             cost += ComputeCost(vehicle, plans.get(vehicle));
         }
 
-
         Candidate candidate = new Candidate(vehicles, plansList, newTasks, cost);
         CentralizedTemplate centralizedTemplate = new CentralizedTemplate();
         // set new instance of centralized template with new timeout for planning
@@ -137,7 +136,7 @@ public class Control {
         System.out.println("task " + task.id + " won by " + selectedVehicle.name());
     }
 
-    private Pair computeMarginalCost(Vehicle vehicle, Task task) {
+    private Pair computeMarginalCost(Vehicle vehicle, Task task, long timeout_bid) {
         // add the new task to the already assigned tasks for that vehicle
         List<Task> tmpAssignedTasks = new ArrayList<>(assignedTasks.get(vehicle));
         tmpAssignedTasks.add(task);
@@ -167,6 +166,7 @@ public class Control {
 
             Candidate candidate = new Candidate(justOneVehicle, justOnePlan,justOneTaskList,ComputeCost(vehicle, plans.get(vehicle)));
             CentralizedTemplate centralizedTemplate = new CentralizedTemplate();
+            centralizedTemplate.setTimeout_plan(timeout_bid);
             newPDPlan = centralizedTemplate.SLS(justOneVehicle,tmpAssignedTasks, candidate).get(0);
         }
 

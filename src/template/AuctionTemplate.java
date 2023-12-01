@@ -105,7 +105,7 @@ public class AuctionTemplate implements AuctionBehavior {
 		double R = this.level_badness.getCurr_badness(task) / this.level_badness.getAvg_badness();
 		System.out.println("The Ratio is: " + R);
 
-		double marg_cost = control.getLowestMarginalCost(task);
+		double marg_cost = control.getLowestMarginalCost(task, timeout_bid);
 
 		double bid;
 		if(this.avg_min < marg_cost) // lowest we bid is avg_min
