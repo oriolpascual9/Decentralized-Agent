@@ -8,10 +8,7 @@ public class PD_Action {
     public Task task;	// task associated with this action
 
     public PD_Action(boolean pickup_switch, Task task) {
-
         this.is_pickup = pickup_switch;
         this.task = task;
-
     }
-
 }
