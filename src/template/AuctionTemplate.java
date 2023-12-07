@@ -38,6 +38,7 @@ public class AuctionTemplate implements AuctionBehavior {
 	private QTableV2 level_badness;
 	private Integer nr_bids;
 	private double avg_min;
+	private double wins;
 
 
 	private long timeout_setup;
@@ -58,6 +59,7 @@ public class AuctionTemplate implements AuctionBehavior {
 		this.level_badness = new QTableV2(topology, distribution, 0.85 );
 		this.nr_bids = 0;
 		this.avg_min = 0;
+		this.wins = 0;
 
 
 		long seed = -9019554669489983951L * currentCity.hashCode() * agent.id();
@@ -88,6 +90,7 @@ public class AuctionTemplate implements AuctionBehavior {
 	public void auctionResult(Task previous, int winner, Long[] bids) {
 		if (winner == agent.id()) {
 			control.updateControlVariablesIfTaskWon(previous);
+			this.wins += 1;
 		}
 
 		double smallest_bid = Double.POSITIVE_INFINITY;
@@ -113,6 +116,7 @@ public class AuctionTemplate implements AuctionBehavior {
 		else // lowest we bid is marg_cost
 			bid = Math.max(R*this.avg_min, marg_cost);
 
+		bid = bid / (Math.max(1, 2.15 - (this.wins/5)));
 		System.out.println("The Bid is: " + bid);
 
 		return (long) Math.round(bid);
